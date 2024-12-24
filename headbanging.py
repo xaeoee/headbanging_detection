@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import cv2
 from functions import *
 
-
 mp_face_mesh = mp.solutions.face_mesh  # MediaPipe FaceMesh 모듈 가져오기
 mp_drawing = mp.solutions.drawing_utils  # MediaPipe 도구 유틸리티 가져오기
 
@@ -32,19 +31,32 @@ def headbanging_detection():
             height, width, _ = frame.shape
 
             # head_mediapipe_detection 함수 호출하여 처리 결과 및 좌표 추출
-            image, left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords = head_mediapipe_detection(frame, face_mesh)
+            image, left_eye_coords_ndarry, right_eye_coords_ndarry, left_lip_coords_ndarry, right_lip_coords_ndarry, center_forehead_coords_ndarray = head_mediapipe_detection(frame, face_mesh)
 
-            
             # 얼굴을 감지하지 못하여 head_mediapipe_detection 함수의 리턴값이 None인 경우 다음 프레임으로 진행
-            if left_eye_coords is None or right_eye_coords is None or left_lip_coords is None or right_lip_coords is None:
+            if left_eye_coords_ndarry is None or right_eye_coords_ndarry is None or left_lip_coords_ndarry is None or right_lip_coords_ndarry is None or center_forehead_coords_ndarray is None:
                 print("Result is None")  # 결과 없음 메시지 출력
                 continue
             
-            left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords = head_width_height_scailing(height, width, left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords)
+            left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords, center_forehead_coords = head_width_height_scailing(height, width, left_eye_coords_ndarry, right_eye_coords_ndarry, left_lip_coords_ndarry, right_lip_coords_ndarry, center_forehead_coords_ndarray)
 
-            left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords = head_coords_from_2d_to_3d(left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords)
+            left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords, center_forehead_coords = head_coords_from_2d_to_3d(left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords ,center_forehead_coords)
 
-            center_forehead_coords = ((left_eye_coords[0] + right_eye_coords[0])//2, int(left_eye_coords[1] + right_eye_coords[1])//2 )
+            forehead_to_left_lip_vector = left_lip_coords_ndarry -  center_forehead_coords_ndarray
+
+            forehead_to_right_lip_vector = right_lip_coords_ndarry - center_forehead_coords_ndarray
+
+            normal_vector = np.cross(forehead_to_left_lip_vector, forehead_to_right_lip_vector)
+
+            if np.linalg.norm(normal_vector) != 0:
+                # the original normal_vector is divided by it's norm.
+                normal_vector_normalized = normal_vector / np.linalg.norm(normal_vector)
+
+                # x_cord.append(normal_vector_normalized[0])
+                # y_cord.append(normal_vector_normalized[1])
+                # z_cord.append(normal_vector_normalized[2])
+
+                draw_normal_vector(image, center_forehead_coords, normal_vector_normalized)
 
             # 좌표값은 현재 (정수, 정수) 형태의 튜플 타입이다.
             head_plot_circle(image, center_forehead_coords, left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords)
@@ -61,4 +73,3 @@ def headbanging_detection():
     # 비디오 캡처 및 윈도우 리소스 해제
     cap.release()
     cv2.destroyAllWindows()
-
