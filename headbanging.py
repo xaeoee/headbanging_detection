@@ -16,17 +16,7 @@ mp_face_mesh = mp.solutions.face_mesh
 # Import MediaPipe drawing utilities
 mp_drawing = mp.solutions.drawing_utils
 
-def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold, verbose, video_path):
-    # Arguments from the user
-    # Angle threshold
-    angle_threshold = angle_threshold
-
-    # Time threshold
-    time_threshold = time_threshold
-
-    # Headbanging count threshold
-    headbanging_threshold = headbanging_threshold
-
+def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold, verbose, debug, flip, video_path):
     # Normal variables
     # Initialize the previous normal vector to None. Used to calculate with the current normal vector
     previous_normal_vector = None
@@ -43,6 +33,8 @@ def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold
     # Create a video capture instance
     cap = cv2.VideoCapture(video_path)
 
+    current_frame_number = 0
+
     # Initialize FaceMesh
     with mp_face_mesh.FaceMesh(
         static_image_mode=False,  # Process video streams instead of static images
@@ -53,6 +45,9 @@ def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold
     ) as face_mesh:
         # Run while the video stream is open
         while cap.isOpened():
+            # total frame number
+            fps = int(cap.get(cv2.CAP_PROP_FPS))
+
             # Read a frame
             ret, frame = cap.read()
             # If reading the frame fails
@@ -60,7 +55,10 @@ def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold
                 print("Error: Frame could not be read.")
                 break
             # Flip the frame horizontally
-            frame = cv2.flip(frame, 1)
+            if flip:
+                frame = cv2.flip(frame, 1)
+
+            current_frame_number += 1
             
             # Save the height and width for scaling MediaPipe's normalized coordinates (0~1) to actual screen size when drawing lines
             height, width, _ = frame.shape
@@ -70,7 +68,8 @@ def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold
 
             # If the face is not detected and the return values of the head_mediapipe_detection function are None, move to the next frame
             if left_eye_coords_ndarry is None or right_eye_coords_ndarry is None or left_lip_coords_ndarry is None or right_lip_coords_ndarry is None or center_forehead_coords_ndarray is None:
-                print("Result is None")
+                if debug:
+                    print("Result is None")
                 continue
             
             left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords, center_forehead_coords = head_width_height_scailing(height, width, left_eye_coords_ndarry, right_eye_coords_ndarry, left_lip_coords_ndarry, right_lip_coords_ndarry, center_forehead_coords_ndarray)
@@ -117,7 +116,7 @@ def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold
                             last_direction_changed_time = current_time
 
                         if direction_change_count >= headbanging_threshold:
-                            print(f"{GREEN}HEADBANGING DETECTED!{RESET}")
+                            print(f"{GREEN}HEADBANGING DETECTED!{RESET} at {current_frame_number / fps:.2f}")
                             direction_change_count = 0
 
                     # Update the current vector to be the previous vector
@@ -126,7 +125,8 @@ def headbanging_detection(angle_threshold, time_threshold, headbanging_threshold
                 else:
                     previous_normal_vector = current_normal_vector
             else:
-                print("Normalized vector's value is 0")
+                if debug:
+                    print("Normalized vector's value is 0")
 
             # Current coordinates are in the form of (integer, integer) tuples
             head_plot_circle(image, center_forehead_coords, left_eye_coords, right_eye_coords, left_lip_coords, right_lip_coords)

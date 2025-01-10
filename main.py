@@ -10,7 +10,9 @@ def main():
     parser.add_argument("--angle_threshold", type=float, default=4.3, help="Threshold angle difference to detect headbanging.")
     parser.add_argument("--time_threshold", type=float, default=0.6, help="Time interval threshold for direction changes.")
     parser.add_argument("--headbanging_threshold", type=int, default=4, help="Number of direction changes to confirm headbanging.")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output for debugging.")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output for information.")
+    parser.add_argument("--debug", action="store_true", help="Enable debug output for debugging.")
+    parser.add_argument("--flip", action="store_true", help="Flips the input video.")
     parser.add_argument("--mode", type=str, choices=["webcam", "video"], default="webcam", help="Mode of operation: 'webcam' for live detection, 'video' for processing a video file.")
     parser.add_argument("--video_path", type=str, default=None, help="Path to the video file (required if mode is 'video').")
 
@@ -28,14 +30,14 @@ def main():
         print(f"Running in video mode with file: {args.video_path}")
         video_path=args.video_path
     
-    print(args.angle_threshold, args.time_threshold, args.headbanging_threshold, args.verbose, video_path)
-
     headbanging_detection(
-        angle_threshold=args.angle_threshold,
-        time_threshold=args.time_threshold,
-        headbanging_threshold=args.headbanging_threshold,
-        verbose=args.verbose,
-        video_path=video_path
+        angle_threshold = args.angle_threshold,
+        time_threshold = args.time_threshold,
+        headbanging_threshold = args.headbanging_threshold,
+        verbose = args.verbose,
+        debug = args.debug,
+        flip = args.flip,
+        video_path = video_path
     )
 
 if __name__ == "__main__":
