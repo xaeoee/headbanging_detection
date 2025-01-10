@@ -28,10 +28,6 @@ HEADBANGING_DETECTION/
 ├── version.py
 ```
 
-Here's the updated README instructions with Python version `3.9.21` specified:
-
----
-
 ### Step 2. Create a Conda Virtual Environment Using `requirements.txt`
 
 1. First, create a new Conda environment with Python 3.9.21:
