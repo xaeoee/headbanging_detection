@@ -1,8 +1,4 @@
-# headbanging_detection
-
-
-
-# Clap Detection Using CNN
+# Headbanging Detection
 ## **I.** Description
 This project processes video files to detect headbanging using **normal vectors**. MediaPipe is utilized to derive the coordinates of key facial landmarks. Specifically, two vectors are calculated: one extending from the midpoint between the eyes to the left lip and another to the right lip. By computing the cross product of these two vectors, a vector perpendicular to the facial plane at the midpoint between the eyes is obtained. 
 
